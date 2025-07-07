@@ -1,14 +1,24 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from "express";
+import { HTTPStatusCode } from "../utils/httpCode";
 
-export function globalErrorHandler(
-  err: any,
+/**
+ * Global error handling middleware.
+ *
+ * @param {any} error - The error object or message.
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ * @param {NextFunction} next - The Express next function.
+ * @returns {Response} - JSON response with error details.
+ */
+export const globalErrorHandler = (
+  error: any,
   req: Request,
   res: Response,
-  next: NextFunction
-) {
-  res.status(err.status || 500).json({
+  next: NextFunction,
+): Response => {
+  return res.status(HTTPStatusCode.BadRequest).json({
     success: false,
-    message: err.message || 'Internal Server Error',
-    error: err,
+    message: error.message || 'Internal Server Error',
+    error
   });
-}
+};

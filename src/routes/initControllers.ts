@@ -1,9 +1,9 @@
 import { Rocket } from '../app';
+import { Router } from 'express';
 import { UserController } from '../modules/user/UserController';
-import { AuthController } from '../modules/auth/AuthController';
 import { registerAuthRoutes } from '../modules/auth/auth.routes';
 import { registerUserRoutes } from '../modules/user/user.routes';
-import { Router } from 'express';
+import { AuthController } from '../modules/auth/AuthController';
 
 export function initControllers(app: Rocket, router: Router) {
   try {

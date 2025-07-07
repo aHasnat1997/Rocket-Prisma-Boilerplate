@@ -1,5 +1,6 @@
 import { Rocket } from '../../app';
 import bcrypt from 'bcryptjs';
+import { TUser } from './user.model';
 
 export class UserService {
   private app: Rocket;
@@ -7,40 +8,41 @@ export class UserService {
     this.app = app;
   }
 
-  async create(data: { email: string; password: string; name: string }) {
-    const { password, email, name } = data;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const userData: { email: string; password: string; name: string } = {
-      name,
-      email,
+  async create(payload: TUser) {
+    const { password, ...rest } = payload
+    const hashedPassword = await bcrypt.hash(password, this.app.config.BCRYPT_SALT_ROUNDS);
+    const userData = {
       password: hashedPassword,
+      ...rest
     };
-    // Only include 'name' if it is defined
-    if (typeof name === 'string') {
-      (userData as any).name = name;
-    }
-    return this.app.db.client.user.create({
+
+    const result = await this.app.db.client.user.create({
       data: userData,
-      select: { id: true, email: true, name: true }
+      select: { id: true, email: true, fullName: true }
     });
+
+    return result;
   }
 
-  findAll(query: any) {
-    const fields = ["id", "email", "name", "createdAt"];
-    return this.app.db.findAll('user', query, {
-      searchableFields: ['email', 'name'],
+  async findAll(query: any) {
+    const fields = ["id", "email", "fullName", "createdAt"];
+    const result = await this.app.db.findAll('user', query, {
+      searchableFields: ['email', 'fullName'],
       select: fields.reduce((acc, field) => ({ ...acc, [field]: true }), {}),
-    });
+    }).exec();
+
+    return result;
   }
 
-  findOne(id: number) {
-    return this.app.db.client.user.findUnique({
+  async findOne(id: string) {
+    const result = await this.app.db.client.user.findUnique({
       where: { id },
-      select: { id: true, email: true, name: true }
+      select: { id: true, email: true, fullName: true }
     });
+    return result;
   }
 
-  async update(id: number, data: { email?: string; password?: string; name?: string }) {
+  async update(id: string, data: Partial<TUser>) {
     const { password, ...rest } = data;
     const updateData: any = { ...rest };
 
@@ -51,11 +53,11 @@ export class UserService {
     return this.app.db.client.user.update({
       where: { id },
       data: updateData,
-      select: { id: true, email: true, name: true }
+      select: { id: true, email: true, fullName: true }
     });
   }
 
-  delete(id: number) {
+  delete(id: string) {
     return this.app.db.client.user.delete({ where: { id } });
   }
 }

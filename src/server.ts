@@ -1,6 +1,5 @@
 import { Server } from "http";
 import { Rocket } from "./app";
-import config from "./config";
 
 let server: Server;
 
@@ -14,8 +13,8 @@ let server: Server;
  * - Launches the server
  */
 (function launchpad() {
-  const port = config.PORT as number;
   const rocket = new Rocket();
+  const port = rocket.config.PORT;
   try {
     rocket.load();
     rocket.initiate();

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { initControllers } from '../config/initControllers';
+import { initControllers } from './initControllers';
 import { Rocket } from '../app';
 
 export class MainRouter {

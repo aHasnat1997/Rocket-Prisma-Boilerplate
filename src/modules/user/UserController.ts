@@ -1,6 +1,8 @@
 import { Rocket } from '../../app';
 import { Request, Response } from 'express';
 import { UserService } from './UserService';
+import successResponse from '../../utils/successResponse';
+import { HTTPStatusCode } from '../../utils/httpCode';
 
 export class UserController {
   private app: Rocket;
@@ -12,59 +14,43 @@ export class UserController {
   }
 
   async create(req: Request, res: Response) {
-    try {
-      const { email, password, name } = req.body;
-      if (!name) {
-        return res.status(400).json({ success: false, message: 'Name is required' });
-      }
-      const data = await this.service.create({ email, password, name });
-      res.status(201).json({ success: true, data });
-    } catch (error: any) {
-      if (error.code === 'P2002') {
-        res.status(409).json({ success: false, message: 'Email already exists' });
-      } else {
-        res.status(500).json({ success: false, message: error.message });
-      }
-    }
-  }
-
-  async getAllUsers(req: Request, res: Response) {
-    const users = await this.app.db.client.user.findMany();
-    res.json(users);
+    const data = await this.service.create(req.body);
+    successResponse(res, {
+      message: 'User register in successfully.',
+      data
+    }, HTTPStatusCode.Created);
   }
 
   async findAll(req: Request, res: Response) {
-    // Use the advanced query builder for full features
-    const builder = this.service.findAll(req.query);
-    const { data, meta } = await builder.exec();
-    res.json({ success: true, data, meta });
+    const { data, meta } = await this.service.findAll(req.query);
+    successResponse(res, {
+      message: 'All users retrieve successfully.',
+      data,
+      meta
+    }, HTTPStatusCode.Ok);
   }
 
   async findOne(req: Request, res: Response) {
-    const data = await this.service.findOne(Number(req.params.id));
-    if (!data) return res.status(404).json({ success: false, message: 'User not found' });
-    res.json({ success: true, data });
+    const data = await this.service.findOne(req.params.id);
+    successResponse(res, {
+      message: 'User info retrieve successfully.',
+      data
+    }, HTTPStatusCode.Ok);
   }
 
   async update(req: Request, res: Response) {
-    try {
-      const data = await this.service.update(Number(req.params.id), req.body);
-      res.json({ success: true, data });
-    } catch (error: any) {
-      if (error.code === 'P2002') {
-        res.status(409).json({ success: false, message: 'Email already exists' });
-      } else {
-        res.status(500).json({ success: false, message: error.message });
-      }
-    }
+    const result = await this.service.update(req.params.id, req.body);
+    successResponse(res, {
+      message: 'User info update successfully.',
+      data: result,
+    }, HTTPStatusCode.Ok);
   }
 
   async delete(req: Request, res: Response) {
-    try {
-      await this.service.delete(Number(req.params.id));
-      res.status(204).send();
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
-    }
+    const result = await this.service.delete(req.params.id);;
+    successResponse(res, {
+      message: 'User info update successfully.',
+      data: result,
+    }, HTTPStatusCode.Ok);
   }
 }

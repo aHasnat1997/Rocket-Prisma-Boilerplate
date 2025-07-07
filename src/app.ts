@@ -1,7 +1,6 @@
 import express, { Express, Request, Response, Router } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import config from './config';
 import { globalErrorHandler } from './error/globalErrorHandler';
 import { PrismaDB } from './db/PrismaClient';
 import { SocketServer } from './sockets/SocketServer';
@@ -10,6 +9,7 @@ import path from 'path';
 import { HTTPStatusCode } from './utils/httpCode';
 import { Server } from 'http';
 import { MainRouter } from './routes';
+import Config, { TAppConfig } from './config';
 
 export class Rocket {
   public app: Express;
@@ -17,12 +17,14 @@ export class Rocket {
   public route: Router;
   public socketServer: SocketServer;
   public server?: Server;
+  public config: TAppConfig;
 
   constructor() {
     this.app = express();
     this.db = new PrismaDB();
     this.route = new MainRouter(this).router;
     this.socketServer = new SocketServer();
+    this.config = Config;
   }
 
   /**
@@ -34,7 +36,10 @@ export class Rocket {
    */
   load() {
     this.app.use(express.json());
-    this.app.use(cors({ origin: [config.CLIENT_URL], credentials: true }));
+    this.app.use(cors({
+      origin: [this.config.CLIENT_URL],
+      credentials: true
+    }));
     this.app.use(cookieParser());
     this.app.set('view engine', 'ejs');
     this.app.set('views', path.join(__dirname, 'views'));
